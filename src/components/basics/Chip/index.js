@@ -20,6 +20,7 @@ const Contenedor = styled.h6`
   border-radius: 4px;
   font-size: 12px;
   background-color: var(--primaryColor);
+  min-width: fit-content;
   > span {
     cursor: pointer;
     color: var(--secondaryColor);

@@ -15,14 +15,14 @@ export const Thinks = ({ isLoggedIn }) => {
 
   useEffect(() => {
     try {
-      Axios.get("http://localhost:3000/api/pensamientos/aleatorios").then(
-        (res) => {
-          if (res.data.length > 0) {
-            setPensamientos(res.data);
-            setLoadingPensamientos(false);
-          }
+      Axios.get(
+        process.env.REACT_APP_API_URL + "/api/pensamientos/aleatorios"
+      ).then((res) => {
+        if (res.data.length > 0) {
+          setPensamientos(res.data);
+          setLoadingPensamientos(false);
         }
-      );
+      });
     } catch (error) {
       console.log(error);
     }
@@ -32,15 +32,18 @@ export const Thinks = ({ isLoggedIn }) => {
     e.preventDefault();
     const data = {
       texto: e.target.texto.value,
-      autor: e.target.autor.value,
     };
-    Axios.post("http://localhost:3000/api/pensamientos/crear", data).then(
-      () => {
-        e.target.texto.value = "";
-        e.target.autor.value = "";
-        setLoadingPensamientos(true);
-      }
-    );
+    if (e.target.autor.value > 0) {
+      data.autor = e.target.autor.value;
+    }
+    Axios.post(
+      process.env.REACT_APP_API_URL + "/api/pensamientos/crear",
+      data
+    ).then(() => {
+      e.target.texto.value = "";
+      e.target.autor.value = "";
+      setLoadingPensamientos(true);
+    });
   };
 
   const handleMasPensamientos = (e) => {
@@ -92,9 +95,9 @@ export const Thinks = ({ isLoggedIn }) => {
                 <Button
                   bg="none"
                   width="full"
-                  onClick={(e) => {
+                  onClick={() => {
                     Axios.delete(
-                      `http://localhost:3000/api/pensamientos/id/${pensamiento.id}`
+                      `${process.env.REACT_APP_API_URL}/api/pensamientos/id/${pensamiento.id}`
                     );
                     setLoadingPensamientos(true);
                   }}
@@ -121,7 +124,12 @@ const Contenedor = styled.aside`
   flex-direction: column;
   gap: 16px;
   padding: 16px;
-  overflow: scroll;
+  overflow-y: scroll;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
   > h2 {
     margin: 8px 0;
     letter-spacing: 2px;

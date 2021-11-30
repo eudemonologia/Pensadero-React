@@ -20,9 +20,11 @@ export const Menu = ({ isLoggedIn, setUserId }) => {
   };
 
   const handleLogout = () => {
-    Axios.get("http://localhost:3000/api/usuarios/desconectar").then(() => {
-      setUserId(0);
-    });
+    Axios.get(process.env.REACT_APP_API_URL + "/api/usuarios/desconectar").then(
+      () => {
+        setUserId(0);
+      }
+    );
   };
 
   const handleSubmitEmail = (e) => {
@@ -31,12 +33,14 @@ export const Menu = ({ isLoggedIn, setUserId }) => {
       email: e.target.email.value,
       mensaje: e.target.mensaje.value,
     };
-    Axios.post("http://localhost:3000/api/contacto", data).then(() => {
-      setMensajeEnviado(true);
-      setTimeout(() => {
-        setMensajeEnviado(false);
-      }, 3000);
-    });
+    Axios.post(process.env.REACT_APP_API_URL + "/api/contacto", data).then(
+      () => {
+        setMensajeEnviado(true);
+        setTimeout(() => {
+          setMensajeEnviado(false);
+        }, 3000);
+      }
+    );
   };
 
   return (

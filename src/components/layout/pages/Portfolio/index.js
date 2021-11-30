@@ -8,12 +8,12 @@ export const Portfolio = ({ isLoggedIn }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Axios.get("http://localhost:3000/api/publicaciones/categorias/2").then(
-      (res) => {
-        setArticulos(res.data);
-        setLoading(false);
-      }
-    );
+    Axios.get(
+      process.env.REACT_APP_API_URL + "/api/publicaciones/categorias/2"
+    ).then((res) => {
+      setArticulos(res.data);
+      setLoading(false);
+    });
   }, [setArticulos, loading]);
 
   if (loading) {

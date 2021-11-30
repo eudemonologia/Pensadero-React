@@ -12,35 +12,28 @@ export const ThinkCard = ({
   idCategoria,
   setArticulos,
   isLoggedIn,
-  loading,
   setLoading,
   articulo,
   cabecera,
   autoria,
   interacciones,
 }) => {
-  const [autor, setAutor] = useState("");
   const [tags, setTags] = useState([]);
-
-  useEffect(() => {
-    if (autoria) {
-      Axios.get(
-        "http://localhost:3000/api/usuarios/id/" + articulo.id_usuario
-      ).then((res) => {
-        setAutor(res.data);
-      });
-    }
-  }, [autoria, articulo.id_usuario, loading]);
+  const [loadingTags, setLoadingTags] = useState(true);
 
   useEffect(() => {
     if (cabecera) {
       Axios.get(
-        "http://localhost:3000/api/publicaciones/id/" + articulo.id + "/tags"
+        process.env.REACT_APP_API_URL +
+          "/api/publicaciones/id/" +
+          articulo.id +
+          "/tags"
       ).then((res) => {
         setTags(res.data);
       });
+      setLoadingTags(false);
     }
-  }, [cabecera, articulo.id, loading]);
+  }, [cabecera, articulo.id, loadingTags]);
 
   return (
     <Contenedor>
@@ -53,7 +46,9 @@ export const ThinkCard = ({
         />
         <p dangerouslySetInnerHTML={{ __html: articulo.contenido }}></p>
         {articulo.imagen && <img src={articulo.imagen} alt={articulo.titulo} />}
-        {autoria && <cite>{autor.nombre + " " + autor.apellido}</cite>}
+        {autoria && (
+          <cite>{articulo.autor_nombre + " " + articulo.autor_apellido}</cite>
+        )}
         {articulo.likes >= 0 && (
           <ButtonBar
             idCategoria={idCategoria}
@@ -64,6 +59,7 @@ export const ThinkCard = ({
             shares={articulo.shares}
             isLoggedIn={isLoggedIn}
             setLoading={setLoading}
+            setLoadingTags={setLoadingTags}
             articulo={articulo}
             setArticulos={setArticulos}
           />
@@ -95,6 +91,7 @@ export const ButtonBar = ({
   interacciones,
   setArticulos,
   setLoading,
+  setLoadingTags,
   isLoggedIn,
   id,
   likes,
@@ -105,7 +102,10 @@ export const ButtonBar = ({
 
   const hadleLikes = () => {
     Axios.get(
-      "http://localhost:3000/api/publicaciones/id/" + id + "/sumarlikes"
+      process.env.REACT_APP_API_URL +
+        "/api/publicaciones/id/" +
+        id +
+        "/sumarlikes"
     ).then((res) => {
       setActualLikes(res.data.likes);
     });
@@ -131,6 +131,7 @@ export const ButtonBar = ({
           articulo={articulo}
           setArticulos={setArticulos}
           setLoading={setLoading}
+          setLoadingTags={setLoadingTags}
         />
       )}
     </IconBar>
@@ -166,7 +167,14 @@ export const Contador = ({ type, count, onClick }) => {
   );
 };
 
-export const AdminBar = ({ idCategoria, tags, articulo, setLoading, id }) => {
+export const AdminBar = ({
+  idCategoria,
+  tags,
+  articulo,
+  setLoading,
+  setLoadingTags,
+  id,
+}) => {
   const [activeModalEliminar, setActiveModalEliminar] = useState(false);
   const [activeModalModificar, setActiveModalModificar] = useState(false);
 
@@ -181,21 +189,26 @@ export const AdminBar = ({ idCategoria, tags, articulo, setLoading, id }) => {
   const handleEliminar = () => {
     try {
       Axios.get(
-        "http://localhost:3000/api/publicaciones/id/" + id + "/eliminar"
+        process.env.REACT_APP_API_URL +
+          "/api/publicaciones/id/" +
+          id +
+          "/eliminar"
       ).then((res) => {
         console.log(res);
         toggleModalEliminar();
         Axios.get(
-          "http://localhost:3000/api/publicaciones/categorias/" + idCategoria
+          process.env.REACT_APP_API_URL +
+            "/api/publicaciones/categorias/" +
+            idCategoria
         ).then((res) => {
           setLoading(true);
-          setLoading(false);
         });
       });
     } catch (error) {
       console.log(error);
     }
   };
+
   const handleSubmitModificar = (e) => {
     e.preventDefault();
     let data = new FormData();
@@ -207,7 +220,10 @@ export const AdminBar = ({ idCategoria, tags, articulo, setLoading, id }) => {
     }
     try {
       Axios.post(
-        "http://localhost:3000/api/publicaciones/id/" + id + "/modificar",
+        process.env.REACT_APP_API_URL +
+          "/api/publicaciones/id/" +
+          id +
+          "/modificar",
         data,
         {
           headers: {
@@ -218,18 +234,24 @@ export const AdminBar = ({ idCategoria, tags, articulo, setLoading, id }) => {
         if (!res.data.error) {
           console.log(res.data);
           Axios.delete(
-            "http://localhost:3000/api/publicaciones/id/" + id + "/tags"
+            process.env.REACT_APP_API_URL +
+              "/api/publicaciones/id/" +
+              id +
+              "/tags"
           ).then((res) => {
             console.log(res.data);
             Axios.post(
-              "http://localhost:3000/api/publicaciones/id/" + id + "/tags",
+              process.env.REACT_APP_API_URL +
+                "/api/publicaciones/id/" +
+                id +
+                "/tags",
               {
                 tags: e.target.tags.value.split(", "),
               }
             ).then((res) => {
               console.log(res.data);
               setLoading(true);
-              setLoading(false);
+              setLoadingTags(true);
             });
           });
         } else if (res.data.error) {

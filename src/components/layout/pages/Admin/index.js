@@ -25,7 +25,7 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
   const handleSubmitLogin = (e) => {
     e.preventDefault();
     Axios.post(
-      "http://localhost:3000/api/usuarios/conectar",
+      process.env.REACT_APP_API_URL + "/api/usuarios/conectar",
       {
         email: e.target.email.value,
         password: e.target.password.value,
@@ -59,17 +59,22 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
         data.append("imagen", e.target.imagen.files[0]);
       }
 
-      Axios.post("http://localhost:3000/api/publicaciones/crear", data, {
-        headers: {
-          "content-type": "multipart/form-data",
-        },
-      }).then((res) => {
+      Axios.post(
+        process.env.REACT_APP_API_URL + "/api/publicaciones/crear",
+        data,
+        {
+          headers: {
+            "content-type": "multipart/form-data",
+          },
+        }
+      ).then((res) => {
         if (!res.data.error) {
           if (e.target.tags.value !== "") {
             let nuevosTags = e.target.tags.value.split(", ");
             try {
               Axios.post(
-                "http://localhost:3000/api/publicaciones/id/" +
+                process.env.REACT_APP_API_URL +
+                  "/api/publicaciones/id/" +
                   res.data.insertId +
                   "/tags",
                 {
@@ -94,16 +99,18 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      Axios.get("http://localhost:3000/api/categorias").then((res) => {
-        setCategorias(res.data);
-      });
+      Axios.get(process.env.REACT_APP_API_URL + "/api/categorias").then(
+        (res) => {
+          setCategorias(res.data);
+        }
+      );
     }
   }, [isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn) {
       try {
-        Axios.get("http://localhost:3000/api/tags").then((res) => {
+        Axios.get(process.env.REACT_APP_API_URL + "/api/tags").then((res) => {
           setTags(res.data);
           setLoadingTags(false);
         });
@@ -111,23 +118,13 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
         console.log(error);
       }
     }
-  }, [isLoggedIn, loadingTags]);
-
-  useEffect(() => {
-    setUserId(0);
-    setUserId(userId);
-  }, [setUserId, userId]);
+  }, [isLoggedIn, userId, loadingTags]);
 
   if (isLoggedIn) {
     return (
       <Contenedor>
         <h3>Nueva Publicación</h3>
-        <Formulario
-          size="page"
-          action="http://localhost:3000/api/publicaciones/crear"
-          method="post"
-          onSubmit={handleSubmitPublicar}
-        >
+        <Formulario size="page" onSubmit={handleSubmitPublicar}>
           <Input
             size="modal"
             label="Titulo:"
@@ -178,7 +175,7 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
             contenido: "Todos los tags utilizados",
           }}
         />
-        <Botonera margin="page">
+        <Botonera margin="page" justify="center">
           {loadingTags ? (
             <div>Cargando...</div>
           ) : (
@@ -226,15 +223,16 @@ const Tag = ({ tag, setLoadingTags }) => {
 
   const handleEliminarTag = (e) => {
     e.preventDefault();
-    Axios.delete("http://localhost:3000/api/tags/id/" + tag.id).then((res) => {
-      if (!res.data.error) {
-        console.log(res.data);
-        setLoadingTags(true);
-        setLoadingTags(false);
-      } else {
-        console.log(res.data);
+    Axios.delete(process.env.REACT_APP_API_URL + "/api/tags/id/" + tag.id).then(
+      (res) => {
+        if (!res.data.error) {
+          console.log(res.data);
+          setLoadingTags(true);
+        } else {
+          console.log(res.data);
+        }
       }
-    });
+    );
   };
 
   return (

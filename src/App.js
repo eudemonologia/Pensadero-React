@@ -23,7 +23,10 @@ function App() {
 
   useEffect(() => {
     Axios.get(
-      "http://localhost:3000/api/usuarios/id/" + userId + "/isconnected",
+      process.env.REACT_APP_API_URL +
+        "/api/usuarios/id/" +
+        userId +
+        "/isconnected",
       {
         headers: {
           "Cache-Control": "no-cache",
