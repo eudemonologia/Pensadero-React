@@ -11,4 +11,38 @@ export const Contenedor = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
+
+  > main {
+    margin: 8px 16px;
+    display: flex;
+    flex-direction: column;
+    background-color: black;
+    width: 500px;
+    border-radius: 16px;
+
+    > header {
+      margin: 0;
+      padding: 24px;
+      display: flex;
+      align-items: center;
+
+      > h3 {
+        margin: 0;
+      }
+
+      > button {
+        margin-left: auto;
+        width: fit-content;
+        height: fit-content;
+        background-color: transparent;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+    }
+
+    > section {
+      padding: 24px;
+    }
+  }
 `;

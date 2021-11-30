@@ -1,20 +1,26 @@
 import React from "react";
-import {ThinkBox} from "../../commons/ThinkBox";
-import {Contenedor} from "./style";
 
-export const Modal = ({active, toggle}) => {
+import { Contenedor } from "./style";
 
-    const onClick = (event) => {
-        if (event.target.id === "modal") toggle()
-    }
+export const Modal = ({ titulo, active, toggle, children }) => {
+  const onClick = (event) => {
+    if (event.target.id === "modal") toggle();
+  };
 
-    return(
-        <>
-            {active && (
-                <Contenedor id="modal" onClick={onClick}>
-                    <ThinkBox toggle={toggle}/>
-                </Contenedor>
-            )}
-        </>
-    )
-}
+  return (
+    <>
+      {active && (
+        <Contenedor id="modal" onClick={onClick}>
+          <main>
+            <header>
+              <h3>{titulo}</h3>
+              <button onClick={toggle}>X</button>
+            </header>
+            <hr />
+            <section>{children}</section>
+          </main>
+        </Contenedor>
+      )}
+    </>
+  );
+};
