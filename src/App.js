@@ -93,6 +93,7 @@ function App() {
             >
               <Admin
                 isLoggedIn={isLoggedIn}
+                setIsLoggedIn={setIsLoggedIn}
                 userId={userId}
                 setUserId={setUserId}
               />
