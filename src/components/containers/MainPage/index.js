@@ -1,34 +1,14 @@
-import { useState, useEffect } from "react";
-import Axios from "axios";
+import { useState } from "react";
 import styled from "styled-components";
 import { NavLink } from "react-router-dom";
 import { Botonera } from "../Botonera";
 
-export const MainPage = ({ userId, setIsLoggedIn, titulo, children }) => {
+export const MainPage = ({ titulo, children }) => {
   const [menuMobile, setMenuMobile] = useState(false);
 
   const handleMenuMobile = () => {
     setMenuMobile(!menuMobile);
   };
-
-  useEffect(() => {
-    Axios.get(
-      process.env.REACT_APP_API_URL +
-        "/api/usuarios/id/" +
-        userId +
-        "/isconnected",
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      }
-    ).then((res) => {
-      setIsLoggedIn(res.data);
-      console.log("Esta conectado: " + res.data);
-    });
-  }, [setIsLoggedIn, userId]);
 
   return (
     <Contenedor>

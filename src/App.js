@@ -22,26 +22,31 @@ function App() {
   const [userId, setUserId] = useState(0);
 
   useEffect(() => {
-    Axios.get(
-      process.env.REACT_APP_API_URL +
-        "/api/usuarios/id/" +
-        userId +
-        "/isconnected",
-      {
-        headers: {
-          "Cache-Control": "no-cache",
-          Pragma: "no-cache",
-          Expires: "0",
-        },
-      }
-    ).then((res) => {
-      if (res.data === true) {
-        setIsLoggedIn(res.data);
-      } else {
-        setUserId(0);
-        setIsLoggedIn(false);
-      }
-    });
+    console.log(userId);
+    if (userId > 0) {
+      Axios.get(
+        process.env.REACT_APP_API_URL +
+          "/api/usuarios/id/" +
+          userId +
+          "/isconnected",
+        {
+          headers: {
+            "Cache-Control": "no-cache",
+            Pragma: "no-cache",
+            Expires: "0",
+          },
+        }
+      ).then((res) => {
+        if (res.data === true) {
+          setIsLoggedIn(res.data);
+        } else {
+          setUserId(0);
+          setIsLoggedIn(false);
+        }
+      });
+    } else {
+      setIsLoggedIn(false);
+    }
   }, [userId]);
 
   return (
@@ -50,47 +55,27 @@ function App() {
         <Menu isLoggedIn={isLoggedIn} setUserId={setUserId} />
         <Switch>
           <Route exact path="/">
-            <MainPage
-              titulo="Inicio"
-              setIsLoggedIn={setIsLoggedIn}
-              userId={userId}
-            >
+            <MainPage titulo="Inicio">
               <Wall isLoggedIn={isLoggedIn} />
             </MainPage>
           </Route>
           <Route exact path="/porfolio">
-            <MainPage
-              titulo="Portfolio"
-              setIsLoggedIn={setIsLoggedIn}
-              userId={userId}
-            >
+            <MainPage titulo="Portfolio">
               <Portfolio isLoggedIn={isLoggedIn} />
             </MainPage>
           </Route>
           <Route exact path="/secretos">
-            <MainPage
-              titulo="Secretos"
-              setIsLoggedIn={setIsLoggedIn}
-              userId={userId}
-            >
+            <MainPage titulo="Secretos">
               <Secrets isLoggedIn={isLoggedIn} />
             </MainPage>
           </Route>
           <Route exact path="/sobre-mi">
-            <MainPage
-              titulo="Sobre mi"
-              setIsLoggedIn={setIsLoggedIn}
-              userId={userId}
-            >
+            <MainPage titulo="Sobre mi">
               <About isLoggedIn={isLoggedIn} />
             </MainPage>
           </Route>
           <Route exact path="/admin">
-            <MainPage
-              titulo="Administración"
-              setIsLoggedIn={setIsLoggedIn}
-              userId={userId}
-            >
+            <MainPage titulo="Administración">
               <Admin
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
