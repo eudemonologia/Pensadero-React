@@ -40,6 +40,7 @@ function App() {
         if (res.data === true) {
           setIsLoggedIn(res.data);
         } else {
+          console.log(res.data);
           setUserId(0);
           setIsLoggedIn(false);
         }
