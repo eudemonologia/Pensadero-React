@@ -14,7 +14,7 @@ import { Modal } from "../../Modal";
 
 Axios.defaults.withCredentials = true;
 
-export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
+export const Admin = ({ isLoggedIn, userId, setUserId }) => {
   const [categorias, setCategorias] = useState([]);
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(true);
@@ -37,8 +37,8 @@ export const Admin = ({ isLoggedIn, setSession, userId, setUserId }) => {
       }
     ).then((res) => {
       if (!res.data.error) {
+        console.log(res.data);
         setError("");
-        setUserId(0);
         setUserId(res.data.id);
       } else {
         setError(res.data.error);

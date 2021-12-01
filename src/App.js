@@ -35,8 +35,12 @@ function App() {
         },
       }
     ).then((res) => {
-      console.log(res.data);
-      setIsLoggedIn(res.data);
+      if (res.data === true) {
+        setIsLoggedIn(res.data);
+      } else {
+        setUserId(0);
+        setIsLoggedIn(false);
+      }
     });
   }, [userId]);
 
