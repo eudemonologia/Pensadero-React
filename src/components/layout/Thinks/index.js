@@ -2,44 +2,38 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { SearchBar } from "../../commons/SearchBar";
 import { Pensamiento } from "../../containers/Pensamiento";
-import Axios from "axios";
 import { Quote } from "../../commons/Quote";
 import { Button } from "../../basics/Button";
 import { Formulario } from "../../containers/Formulario";
 import { Input } from "../../basics/Input";
 import { Textarea } from "../../basics/Textarea";
+import { pensamientosServices } from "../../../services/pensamientos";
 
-export const Thinks = ({ isLoggedIn }) => {
+export const Thinks = ({ isLoggedIn, user }) => {
   const [pensamientos, setPensamientos] = useState([]);
   const [loadingPensamientos, setLoadingPensamientos] = useState(true);
 
   useEffect(() => {
-    try {
-      Axios.get(
-        process.env.REACT_APP_API_URL + "/api/pensamientos/aleatorios"
-      ).then((res) => {
-        if (res.data.length > 0) {
-          setPensamientos(res.data);
+    if (loadingPensamientos) {
+      pensamientosServices.getAleatorios().then((res) => {
+        if (res) {
+          setPensamientos(res);
           setLoadingPensamientos(false);
         }
       });
-    } catch (error) {
-      console.log(error);
     }
-  }, [loadingPensamientos, setLoadingPensamientos]);
+  }, [loadingPensamientos]);
 
   const handleSubmitPensamiento = (e) => {
     e.preventDefault();
     const data = {
       texto: e.target.texto.value,
     };
-    if (e.target.autor.value > 0) {
+    if (e.target.autor.value !== "") {
       data.autor = e.target.autor.value;
     }
-    Axios.post(
-      process.env.REACT_APP_API_URL + "/api/pensamientos/crear",
-      data
-    ).then(() => {
+    pensamientosServices.create(data, user).then((res) => {
+      console.log(res);
       e.target.texto.value = "";
       e.target.autor.value = "";
       setLoadingPensamientos(true);
@@ -83,38 +77,57 @@ export const Thinks = ({ isLoggedIn }) => {
       )}
       {loadingPensamientos ? (
         <Pensamiento>
-          <p>Cargando pensamientos...</p>
+          <p>Cargando grandes pensamientos de nobles autores...</p>
         </Pensamiento>
       ) : (
         pensamientos.map((pensamiento) => (
-          <Pensamiento key={pensamiento.id}>
-            <Quote texto={pensamiento.texto} autor={pensamiento.autor} />
-            {isLoggedIn && (
-              <>
-                <hr />
-                <Button
-                  bg="none"
-                  width="full"
-                  onClick={() => {
-                    Axios.delete(
-                      `${process.env.REACT_APP_API_URL}/api/pensamientos/id/${pensamiento.id}`
-                    );
-                    setLoadingPensamientos(true);
-                  }}
-                >
-                  ELIMINAR
-                </Button>
-              </>
-            )}
-          </Pensamiento>
+          <PensamientoQuote
+            key={pensamiento.id}
+            isLoggedIn={isLoggedIn}
+            user={user}
+            id={pensamiento.id}
+            texto={pensamiento.texto}
+            autor={pensamiento.autor}
+            setLoadingPensamientos={setLoadingPensamientos}
+          />
         ))
       )}
-      <Pensamiento>
-        <Button width="full" bg="none" onClick={handleMasPensamientos}>
+      <Pensamiento onClick={handleMasPensamientos}>
+        <Button width="full" bg="none">
           + PENSAMIENTOS
         </Button>
       </Pensamiento>
     </Contenedor>
+  );
+};
+
+const PensamientoQuote = ({
+  isLoggedIn,
+  user,
+  id,
+  texto,
+  autor,
+  setLoadingPensamientos,
+}) => {
+  const handleEliminarPensamiento = (e) => {
+    e.preventDefault();
+    pensamientosServices.deleteById(id, user).then((res) => {
+      console.log(res);
+      setLoadingPensamientos(true);
+    });
+  };
+  return (
+    <Pensamiento key={id}>
+      <Quote texto={texto} autor={autor} />
+      {isLoggedIn && (
+        <>
+          <hr />
+          <Button bg="none" width="full" onClick={handleEliminarPensamiento}>
+            ELIMINAR
+          </Button>
+        </>
+      )}
+    </Pensamiento>
   );
 };
 

@@ -11,7 +11,7 @@ import { Textarea } from "../../basics/Textarea";
 import { Botonera } from "../../containers/Botonera";
 import fotoPerfil from "../../../Assets/images/Foto-perfil.jpg";
 
-export const Menu = ({ isLoggedIn, setUserId }) => {
+export const Menu = ({ setIsLoggedIn, isLoggedIn, setUser }) => {
   const [activeModal, setActiveModal] = useState(false);
   const [mensajeEnviado, setMensajeEnviado] = useState(false);
 
@@ -20,11 +20,9 @@ export const Menu = ({ isLoggedIn, setUserId }) => {
   };
 
   const handleLogout = () => {
-    Axios.get(process.env.REACT_APP_API_URL + "/api/usuarios/desconectar").then(
-      () => {
-        setUserId(0);
-      }
-    );
+    setUser({});
+    localStorage.removeItem("user_web_up_token");
+    setIsLoggedIn(false);
   };
 
   const handleSubmitEmail = (e) => {

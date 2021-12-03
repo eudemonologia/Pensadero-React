@@ -1,21 +1,20 @@
-import React, { useState, useEffect } from "react";
-import Axios from "axios";
+import { useState, useEffect } from "react";
 import styled from "styled-components";
-
 import { ThinkCard } from "../../../commons/ThinkCard";
+import { publicacionesServices } from "../../../../services/publicaciones";
 
-export const About = ({ isLoggedIn }) => {
+export const About = ({ isLoggedIn, user }) => {
   const [articulos, setArticulos] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Axios.get(
-      process.env.REACT_APP_API_URL + "/api/publicaciones/categorias/3"
-    ).then((res) => {
-      setArticulos(res.data);
-      setLoading(false);
-    });
-  }, [setArticulos, loading]);
+    if (loading) {
+      publicacionesServices.getByCategoriaId(3).then((res) => {
+        setArticulos(res);
+        setLoading(false);
+      });
+    }
+  }, [loading]);
 
   if (loading) {
     return (
@@ -32,6 +31,7 @@ export const About = ({ isLoggedIn }) => {
         {articulos.map((articulo) => (
           <div key={articulo.id}>
             <ThinkCard
+              user={user}
               idCategoria="2"
               isLoggedIn={isLoggedIn}
               loading={loading}

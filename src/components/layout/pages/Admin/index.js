@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 import { useHistory } from "react-router";
-import Axios from "axios";
+import { usuariosServices } from "../../../../services/usuarios";
 import { Button } from "../../../basics/Button";
 import { Input } from "../../../basics/Input";
 import { Textarea } from "../../../basics/Textarea";
@@ -11,10 +11,11 @@ import { ThinkCard } from "../../../commons/ThinkCard";
 import { Chip } from "../../../basics/Chip";
 import { Botonera } from "../../../containers/Botonera";
 import { Modal } from "../../Modal";
+import { publicacionesServices } from "../../../../services/publicaciones";
+import { categoriasServices } from "../../../../services/categorias";
+import { tagsServices } from "../../../../services/tags";
 
-Axios.defaults.withCredentials = true;
-
-export const Admin = ({ isLoggedIn, setIsLoggedIn, userId, setUserId }) => {
+export const Admin = ({ isLoggedIn, setIsLoggedIn, user, setUser }) => {
   const [categorias, setCategorias] = useState([]);
   const [tags, setTags] = useState([]);
   const [loadingTags, setLoadingTags] = useState(true);
@@ -24,102 +25,61 @@ export const Admin = ({ isLoggedIn, setIsLoggedIn, userId, setUserId }) => {
 
   const handleSubmitLogin = (e) => {
     e.preventDefault();
-    Axios.post(
-      process.env.REACT_APP_API_URL + "/api/usuarios/conectar",
-      {
-        email: e.target.email.value,
-        password: e.target.password.value,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    ).then((res) => {
-      if (!res.data.error) {
-        console.log(res.data);
+    usuariosServices
+      .postConectar(e.target.email.value, e.target.password.value)
+      .then((res) => {
+        console.log(res);
         setError("");
-        setUserId(res.data.id);
+        localStorage.setItem("user_web_up_token", JSON.stringify(res.data));
+        setUser(res.data);
         setIsLoggedIn(true);
-      } else {
-        setError(res.data.error);
-      }
-    });
+      })
+      .catch((err) => {
+        setError("Usuario o contraseña incorrectos");
+        setTimeout(() => {
+          setError("");
+        }, 5000);
+      });
   };
 
   const handleSubmitPublicar = (e) => {
     e.preventDefault();
-    try {
-      let data = new FormData();
-      data.append("id_usuario", userId);
-      data.append("id_categoria", e.target.categoria.value);
-      data.append("titulo", e.target.titulo.value);
-      data.append("contenido", e.target.contenido.value);
-      data.append("status", 1);
-      if (e.target.imagen.files[0]) {
-        data.append("imagen", e.target.imagen.files[0]);
-      }
+    let data = new FormData();
+    data.append("id_usuario", user.id);
+    data.append("id_categoria", e.target.categoria.value);
+    data.append("titulo", e.target.titulo.value);
+    data.append("contenido", e.target.contenido.value);
+    data.append("status", 1);
 
-      Axios.post(
-        process.env.REACT_APP_API_URL + "/api/publicaciones/crear",
-        data,
-        {
-          headers: {
-            "content-type": "multipart/form-data",
-          },
-        }
-      ).then((res) => {
-        if (!res.data.error) {
-          if (e.target.tags.value !== "") {
-            let nuevosTags = e.target.tags.value.split(", ");
-            try {
-              Axios.post(
-                process.env.REACT_APP_API_URL +
-                  "/api/publicaciones/id/" +
-                  res.data.insertId +
-                  "/tags",
-                {
-                  tags: nuevosTags,
-                }
-              ).then((res) => {
-                console.log(res.data);
-                history.push("/");
-              });
-            } catch (error) {
-              console.log(error);
-            }
-          }
-          history.push("/");
-        }
-      });
-    } catch (error) {
-      console.log(error);
-      alert("Error al publicar");
+    if (e.target.imagen.files[0]) {
+      data.append("imagen", e.target.imagen.files[0]);
     }
+
+    publicacionesServices
+      .postPublicacion(data, e.target.tags.value, user)
+      .then((res) => {
+        setTimeout(() => {
+          history.push("/");
+        }, 500);
+      });
   };
 
   useEffect(() => {
     if (isLoggedIn) {
-      Axios.get(process.env.REACT_APP_API_URL + "/api/categorias").then(
-        (res) => {
-          setCategorias(res.data);
-        }
-      );
+      categoriasServices.getAll().then((res) => {
+        setCategorias(res);
+      });
     }
   }, [isLoggedIn]);
 
   useEffect(() => {
     if (isLoggedIn) {
-      try {
-        Axios.get(process.env.REACT_APP_API_URL + "/api/tags").then((res) => {
-          setTags(res.data);
-          setLoadingTags(false);
-        });
-      } catch (error) {
-        console.log(error);
-      }
+      tagsServices.getAll().then((res) => {
+        setTags(res);
+        setLoadingTags(false);
+      });
     }
-  }, [isLoggedIn, userId, loadingTags]);
+  }, [isLoggedIn, tags]);
 
   if (isLoggedIn) {
     return (
@@ -181,7 +141,12 @@ export const Admin = ({ isLoggedIn, setIsLoggedIn, userId, setUserId }) => {
             <div>Cargando...</div>
           ) : (
             tags.map((tag) => (
-              <Tag key={tag.id} tag={tag} setLoadingTags={setLoadingTags} />
+              <Tag
+                key={tag.id}
+                tag={tag}
+                setLoadingTags={setLoadingTags}
+                user={user}
+              />
             ))
           )}
         </Botonera>
@@ -215,7 +180,7 @@ export const Admin = ({ isLoggedIn, setIsLoggedIn, userId, setUserId }) => {
   }
 };
 
-const Tag = ({ tag, setLoadingTags }) => {
+const Tag = ({ tag, setLoadingTags, user }) => {
   const [activeModal, setActiveModal] = useState(false);
 
   const toggleModal = () => {
@@ -224,16 +189,10 @@ const Tag = ({ tag, setLoadingTags }) => {
 
   const handleEliminarTag = (e) => {
     e.preventDefault();
-    Axios.delete(process.env.REACT_APP_API_URL + "/api/tags/id/" + tag.id).then(
-      (res) => {
-        if (!res.data.error) {
-          console.log(res.data);
-          setLoadingTags(true);
-        } else {
-          console.log(res.data);
-        }
-      }
-    );
+    tagsServices.deleteTagById(tag.id, user).then((res) => {
+      console.log(res);
+      setLoadingTags(true);
+    });
   };
 
   return (

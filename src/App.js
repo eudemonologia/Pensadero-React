@@ -1,6 +1,6 @@
 import Axios from "axios";
 import { useEffect, useState } from "react";
-import GlobalStyle from "./styles/GlobalStyle";
+import GlobalStyle from "./GlobalStyle";
 import { Menu } from "./components/layout/Menu";
 import { Wall } from "./components/layout/pages/Wall";
 import { Thinks } from "./components/layout/Thinks";
@@ -19,60 +19,49 @@ Axios.defaults.withCredentials = true;
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState(0);
+  const [user, setUser] = useState({});
 
   useEffect(() => {
-    console.log(userId);
-    if (userId > 0) {
-      Axios.get(
-        process.env.REACT_APP_API_URL +
-          "/api/usuarios/id/" +
-          userId +
-          "/isconnected",
-        {
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            Expires: "0",
-          },
-        }
-      ).then((res) => {
-        if (res.data === true) {
-          setIsLoggedIn(res.data);
-        } else {
-          console.log(res.data);
-          setUserId(0);
-          setIsLoggedIn(false);
-        }
-      });
-    } else {
-      setIsLoggedIn(false);
+    const checkSession = JSON.parse(localStorage.getItem("user_web_up_token"));
+    if (checkSession) {
+      if (Date.parse(checkSession.expiresAt) > Date.now()) {
+        setIsLoggedIn(true);
+        setUser(checkSession);
+      } else {
+        localStorage.removeItem("user_web_up_token");
+        setUser({});
+        alert("Tu sesión ha expirado");
+      }
     }
-  }, [userId]);
+  }, []);
 
   return (
     <>
       <Router>
-        <Menu isLoggedIn={isLoggedIn} setUserId={setUserId} />
+        <Menu
+          setIsLoggedIn={setIsLoggedIn}
+          isLoggedIn={isLoggedIn}
+          setUser={setUser}
+        />
         <Switch>
           <Route exact path="/">
             <MainPage titulo="Inicio">
-              <Wall isLoggedIn={isLoggedIn} />
+              <Wall isLoggedIn={isLoggedIn} user={user} />
             </MainPage>
           </Route>
           <Route exact path="/porfolio">
             <MainPage titulo="Portfolio">
-              <Portfolio isLoggedIn={isLoggedIn} />
+              <Portfolio isLoggedIn={isLoggedIn} user={user} />
             </MainPage>
           </Route>
           <Route exact path="/secretos">
             <MainPage titulo="Secretos">
-              <Secrets isLoggedIn={isLoggedIn} />
+              <Secrets isLoggedIn={isLoggedIn} user={user} />
             </MainPage>
           </Route>
           <Route exact path="/sobre-mi">
             <MainPage titulo="Sobre mi">
-              <About isLoggedIn={isLoggedIn} />
+              <About isLoggedIn={isLoggedIn} user={user} />
             </MainPage>
           </Route>
           <Route exact path="/admin">
@@ -80,14 +69,14 @@ function App() {
               <Admin
                 isLoggedIn={isLoggedIn}
                 setIsLoggedIn={setIsLoggedIn}
-                userId={userId}
-                setUserId={setUserId}
+                user={user}
+                setUser={setUser}
               />
             </MainPage>
           </Route>
           <Redirect from="*" to="/"></Redirect>
         </Switch>
-        <Thinks isLoggedIn={isLoggedIn} />
+        <Thinks isLoggedIn={isLoggedIn} user={user} />
       </Router>
       <GlobalStyle />
     </>

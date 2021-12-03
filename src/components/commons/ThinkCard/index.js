@@ -7,9 +7,10 @@ import { Formulario } from "../../containers/Formulario";
 import { Input } from "../../basics/Input";
 import { Textarea } from "../../basics/Textarea";
 import { Contenedor, CountBox, Header, IconBar, AdminBarBox } from "./style";
+import { publicacionesServices } from "../../../services/publicaciones";
 
 export const ThinkCard = ({
-  idCategoria,
+  user,
   setArticulos,
   isLoggedIn,
   setLoading,
@@ -23,17 +24,14 @@ export const ThinkCard = ({
 
   useEffect(() => {
     if (cabecera) {
-      Axios.get(
-        process.env.REACT_APP_API_URL +
-          "/api/publicaciones/id/" +
-          articulo.id +
-          "/tags"
-      ).then((res) => {
-        setTags(res.data);
-      });
+      if (articulo.tags_publicacion) {
+        setTags(articulo.tags_publicacion.split(","));
+      }
+      setLoadingTags(false);
+    } else {
       setLoadingTags(false);
     }
-  }, [cabecera, articulo.id, loadingTags]);
+  }, [cabecera, loadingTags, articulo]);
 
   return (
     <Contenedor>
@@ -51,7 +49,7 @@ export const ThinkCard = ({
         )}
         {articulo.likes >= 0 && (
           <ButtonBar
-            idCategoria={idCategoria}
+            user={user}
             tags={tags}
             interacciones={interacciones}
             id={articulo.id}
@@ -74,8 +72,7 @@ export const Titulos = ({ cabecera, tags, titulo, fecha }) => {
     <Header>
       {cabecera && (
         <div>
-          {tags.length > 0 &&
-            tags.map((tag) => <h5 key={tag.id}>{tag.nombre}</h5>)}
+          {tags.length > 0 && tags.map((tag, key) => <h5 key={key}>{tag}</h5>)}
           <time dateTime={fecha}>{fecha.substr(0, 10)}</time>
         </div>
       )}
@@ -85,7 +82,7 @@ export const Titulos = ({ cabecera, tags, titulo, fecha }) => {
 };
 
 export const ButtonBar = ({
-  idCategoria,
+  user,
   tags,
   articulo,
   interacciones,
@@ -125,7 +122,7 @@ export const ButtonBar = ({
       )}
       {isLoggedIn && (
         <AdminBar
-          idCategoria={idCategoria}
+          user={user}
           id={id}
           tags={tags}
           articulo={articulo}
@@ -168,7 +165,7 @@ export const Contador = ({ type, count, onClick }) => {
 };
 
 export const AdminBar = ({
-  idCategoria,
+  user,
   tags,
   articulo,
   setLoading,
@@ -187,26 +184,11 @@ export const AdminBar = ({
   };
 
   const handleEliminar = () => {
-    try {
-      Axios.get(
-        process.env.REACT_APP_API_URL +
-          "/api/publicaciones/id/" +
-          id +
-          "/eliminar"
-      ).then((res) => {
-        console.log(res);
-        toggleModalEliminar();
-        Axios.get(
-          process.env.REACT_APP_API_URL +
-            "/api/publicaciones/categorias/" +
-            idCategoria
-        ).then((res) => {
-          setLoading(true);
-        });
-      });
-    } catch (error) {
-      console.log(error);
-    }
+    publicacionesServices.deleteById(id, user).then((res) => {
+      console.log(res);
+      toggleModalEliminar();
+      setLoading(true);
+    });
   };
 
   const handleSubmitModificar = (e) => {
@@ -216,51 +198,16 @@ export const AdminBar = ({
     data.append("contenido", e.target.contenido.value);
     if (e.target.imagen.files[0]) {
       data.append("imagen", e.target.imagen.files[0]);
-      console.log(data.get("imagen"));
     }
-    try {
-      Axios.post(
-        process.env.REACT_APP_API_URL +
-          "/api/publicaciones/id/" +
-          id +
-          "/modificar",
-        data,
-        {
-          headers: {
-            "content-type": "multipart/form-data",
-          },
-        }
-      ).then((res) => {
-        if (!res.data.error) {
-          console.log(res.data);
-          Axios.delete(
-            process.env.REACT_APP_API_URL +
-              "/api/publicaciones/id/" +
-              id +
-              "/tags"
-          ).then((res) => {
-            console.log(res.data);
-            Axios.post(
-              process.env.REACT_APP_API_URL +
-                "/api/publicaciones/id/" +
-                id +
-                "/tags",
-              {
-                tags: e.target.tags.value.split(", "),
-              }
-            ).then((res) => {
-              console.log(res.data);
-              setLoading(true);
-              setLoadingTags(true);
-            });
-          });
-        } else if (res.data.error) {
-          alert(res.data.error);
-        }
+    let newTags = e.target.tags.value;
+    publicacionesServices
+      .putPublicacionById(id, data, newTags, user)
+      .then((res) => {
+        console.log(res);
+        setTimeout(() => {
+          setLoading(true);
+        }, 500);
       });
-    } catch (error) {
-      console.log(error);
-    }
   };
 
   return (
@@ -312,7 +259,7 @@ export const AdminBar = ({
             name="tags"
             id="tags"
             placeholder="Escribe aquí los tags (Ej: Tag1, Tag2, Tag3)"
-            defaultValue={tags.map((tag) => tag.nombre).join(", ")}
+            defaultValue={tags.join(", ")}
           />
           <Input
             size="modal"
