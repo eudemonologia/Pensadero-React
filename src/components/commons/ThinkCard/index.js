@@ -1,4 +1,3 @@
-import Axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Button } from "../../basics/Button";
 import { Botonera } from "../../containers/Botonera";
@@ -98,12 +97,7 @@ export const ButtonBar = ({
   const [actualshares, setActualShares] = useState(shares);
 
   const hadleLikes = () => {
-    Axios.get(
-      process.env.REACT_APP_API_URL +
-        "/api/publicaciones/id/" +
-        id +
-        "/sumarlikes"
-    ).then((res) => {
+    publicacionesServices.putSumarLike(id).then((res) => {
       setActualLikes(res.data.likes);
     });
   };

@@ -101,6 +101,14 @@ const postTagsByPublicacionId = async (publicacionId, tags, { token }) => {
   }
 };
 
+const putSumarLike = async (publicacionId) => {
+  try {
+    return await Axios.put(`${BASE_URL}/id/${publicacionId}/sumarlike`);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 /*
  * DELETE PUBLICACIONES
  */
@@ -130,6 +138,7 @@ const deleteTagsByPublicacionId = async (publicacionId, { token }) => {
 export const publicacionesServices = {
   postPublicacion,
   postTagsByPublicacionId,
+  putSumarLike,
   putPublicacionById,
   getByCategoriaId,
   deleteById,

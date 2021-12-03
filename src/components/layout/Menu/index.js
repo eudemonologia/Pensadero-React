@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import Axios from "axios";
 import { Button } from "../../basics/Button/index";
 import { Contenedor } from "./style";
 import { ListaOption } from "./Lista";
@@ -10,6 +9,7 @@ import { Input } from "../../basics/Input";
 import { Textarea } from "../../basics/Textarea";
 import { Botonera } from "../../containers/Botonera";
 import fotoPerfil from "../../../Assets/images/Foto-perfil.jpg";
+import { contactoServices } from "../../../services/contacto";
 
 export const Menu = ({ setIsLoggedIn, isLoggedIn, setUser }) => {
   const [activeModal, setActiveModal] = useState(false);
@@ -31,14 +31,13 @@ export const Menu = ({ setIsLoggedIn, isLoggedIn, setUser }) => {
       email: e.target.email.value,
       mensaje: e.target.mensaje.value,
     };
-    Axios.post(process.env.REACT_APP_API_URL + "/api/contacto", data).then(
-      () => {
-        setMensajeEnviado(true);
-        setTimeout(() => {
-          setMensajeEnviado(false);
-        }, 3000);
-      }
-    );
+    contactoServices.enviarMail(data).then((res) => {
+      console.log(res);
+      setMensajeEnviado(true);
+      setTimeout(() => {
+        setMensajeEnviado(false);
+      }, 3000);
+    });
   };
 
   return (
